@@ -8,14 +8,98 @@ interface LayoutProps {
 
 export function Layout({ children, title }: LayoutProps) {
   return (
-    <div className="p-4 min-h-screen">
-      <header className="mb-6 border-b pb-4">
-        <Link to="/" className="text-xl font-semibold text-gray-900">
-          Influencer Search
-        </Link>
-        {title && <h1 className="text-2xl mt-2">{title}</h1>}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+        backgroundColor: "var(--bg-primary)",
+      }}
+    >
+      {/* Header */}
+      <header
+        style={{
+          backgroundColor: "var(--bg-secondary)",
+          borderBottom: "1px solid var(--border-light)",
+          padding: "var(--space-lg) var(--space-md)",
+          boxShadow: "var(--shadow-sm)",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "1280px",
+            margin: "0 auto",
+            padding: "0 var(--space-md)",
+          }}
+        >
+          <Link
+            to="/"
+            style={{
+              display: "inline-block",
+              fontSize: "var(--fs-xl)",
+              fontWeight: "var(--fw-semibold)",
+              color: "var(--primary)",
+              textDecoration: "none",
+              marginBottom: title ? "var(--space-sm)" : 0,
+              transition: "color var(--transition-fast)",
+            }}
+            onMouseEnter={(e) =>
+              (e.currentTarget.style.color = "var(--primary-dark)")
+            }
+            onMouseLeave={(e) =>
+              (e.currentTarget.style.color = "var(--primary)")
+            }
+          >
+            ✨ Influencer Search
+          </Link>
+          {title && (
+            <h1
+              style={{
+                fontSize: "var(--fs-2xl)",
+                fontWeight: "var(--fw-bold)",
+                color: "var(--text-primary)",
+                margin: 0,
+              }}
+            >
+              {title}
+            </h1>
+          )}
+        </div>
       </header>
-      <main>{children}</main>
+
+      {/* Main Content */}
+      <main
+        style={{
+          flex: 1,
+          maxWidth: "1280px",
+          width: "100%",
+          margin: "0 auto",
+          padding: "var(--space-xl) var(--space-md)",
+        }}
+      >
+        {children}
+      </main>
+
+      {/* Footer */}
+      <footer
+        style={{
+          backgroundColor: "var(--bg-secondary)",
+          borderTop: "1px solid var(--border-light)",
+          padding: "var(--space-lg) var(--space-md)",
+          marginTop: "var(--space-2xl)",
+          textAlign: "center",
+          fontSize: "var(--fs-sm)",
+          color: "var(--text-tertiary)",
+        }}
+      >
+        <p style={{ margin: 0 }}>
+          © 2026 Influencer Search. Built with React + TypeScript + Tailwind.
+        </p>
+      </footer>
     </div>
   );
 }
+
