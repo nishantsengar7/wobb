@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
+import { useSelectedProfilesStore } from "@/store/selectedProfilesStore";
 
 interface LayoutProps {
   children: ReactNode;
@@ -7,6 +8,8 @@ interface LayoutProps {
 }
 
 export function Layout({ children, title }: LayoutProps) {
+  const selectedCount = useSelectedProfilesStore((state) => state.items.length);
+
   return (
     <div
       style={{
@@ -55,6 +58,44 @@ export function Layout({ children, title }: LayoutProps) {
           >
             ✨ Influencer Search
           </Link>
+          <Link
+            to="/list"
+            aria-label={`Open my list with ${selectedCount} selected profiles`}
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "var(--space-sm)",
+              marginLeft: "var(--space-md)",
+              padding: "var(--space-xs) var(--space-sm)",
+              borderRadius: "var(--rounded-md)",
+              border: "1px solid var(--border-light)",
+              backgroundColor: "var(--bg-primary)",
+              color: "var(--text-primary)",
+              textDecoration: "none",
+              fontSize: "var(--fs-sm)",
+              fontWeight: "var(--fw-semibold)",
+            }}
+          >
+            My List
+            <span
+              aria-hidden="true"
+              style={{
+                minWidth: "24px",
+                height: "24px",
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: "var(--rounded-full)",
+                backgroundColor:
+                  selectedCount > 0 ? "var(--accent)" : "var(--bg-tertiary)",
+                color:
+                  selectedCount > 0 ? "var(--text-inverse)" : "var(--text-tertiary)",
+                fontSize: "var(--fs-xs)",
+              }}
+            >
+              {selectedCount}
+            </span>
+          </Link>
           {title && (
             <h1
               style={{
@@ -102,4 +143,3 @@ export function Layout({ children, title }: LayoutProps) {
     </div>
   );
 }
-

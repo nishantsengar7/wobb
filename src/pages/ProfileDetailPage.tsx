@@ -1,14 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
+import { AddToListButton } from "@/components/AddToListButton";
 import { Layout } from "@/components/Layout";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
-import type { FullUserProfile, ProfileDetailResponse } from "@/types";
+import { useSearchStore } from "@/store/searchStore";
+import { createSelectedProfile } from "@/store/selectedProfilesStore";
+import type { FullUserProfile, Platform, ProfileDetailResponse } from "@/types";
 import { loadProfileByUsername } from "@/utils/profileLoader";
 
 function formatFollowersDetail(count: number) {
   if (count >= 1000000) return (count / 1000000).toFixed(2) + "M";
   if (count >= 1000) return (count / 1000).toFixed(1) + "K";
   return String(count);
+}
+
+function getPlatformParam(value: string | null): Platform | null {
+  if (value === "instagram" || value === "youtube" || value === "tiktok") {
+    return value;
+  }
+
+  return null;
 }
 
 function StatCard({
@@ -61,7 +72,8 @@ function StatCard({
 export function ProfileDetailPage() {
   const { username } = useParams<{ username: string }>();
   const [searchParams] = useSearchParams();
-  const platform = searchParams.get("platform") || "unknown";
+  const currentSearchPlatform = useSearchStore((state) => state.platform);
+  const platform = getPlatformParam(searchParams.get("platform")) || currentSearchPlatform;
   const [profileData, setProfileData] = useState<ProfileDetailResponse | null>(
     null
   );
@@ -75,6 +87,12 @@ export function ProfileDetailPage() {
       setLoaded(true);
     });
   }, [username]);
+
+  const user: FullUserProfile | undefined = profileData?.data?.user_profile;
+  const selectedProfile = useMemo(
+    () => (user ? createSelectedProfile(user, platform) : null),
+    [platform, user]
+  );
 
   if (!username) {
     return (
@@ -110,7 +128,7 @@ export function ProfileDetailPage() {
     );
   }
 
-  if (!profileData) {
+  if (!profileData || !user || !selectedProfile) {
     return (
       <Layout>
         <Link
@@ -133,8 +151,6 @@ export function ProfileDetailPage() {
       </Layout>
     );
   }
-
-  const user: FullUserProfile = profileData.data.user_profile;
 
   return (
     <Layout>
@@ -271,6 +287,10 @@ export function ProfileDetailPage() {
               View on {platform} →
             </a>
           )}
+
+          <div style={{ marginTop: "var(--space-md)" }}>
+            <AddToListButton profile={selectedProfile} />
+          </div>
         </div>
       </div>
 
@@ -433,24 +453,6 @@ export function ProfileDetailPage() {
         </div>
       )}
 
-      {/* TODO: Add to List Feature */}
-      <div style={{ marginTop: "var(--space-2xl)" }}>
-        <button
-          disabled
-          style={{
-            padding: "var(--space-md) var(--space-lg)",
-            backgroundColor: "var(--bg-tertiary)",
-            color: "var(--text-tertiary)",
-            border: "1px solid var(--border-light)",
-            borderRadius: "var(--rounded-md)",
-            cursor: "not-allowed",
-            fontSize: "var(--fs-base)",
-            fontWeight: "var(--fw-medium)",
-          }}
-        >
-          + Add to List (Coming Soon)
-        </button>
-      </div>
     </Layout>
   );
 }

@@ -1,6 +1,9 @@
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { KeyboardEvent } from "react";
+import { AddToListButton } from "@/components/AddToListButton";
 import { useSearchStore } from "@/store/searchStore";
+import { createSelectedProfile } from "@/store/selectedProfilesStore";
 import type { UserProfileSummary } from "@/types";
 import { VerifiedBadge } from "./VerifiedBadge";
 
@@ -18,6 +21,10 @@ export function ProfileCard({ profile }: ProfileCardProps) {
   const navigate = useNavigate();
   const platform = useSearchStore((state) => state.platform);
   const recordProfileClick = useSearchStore((state) => state.recordProfileClick);
+  const selectedProfile = useMemo(
+    () => createSelectedProfile(profile, platform),
+    [platform, profile]
+  );
 
   const handleClick = () => {
     recordProfileClick(profile.username);
@@ -33,11 +40,6 @@ export function ProfileCard({ profile }: ProfileCardProps) {
 
   return (
     <div
-      role="button"
-      tabIndex={0}
-      onClick={handleClick}
-      onKeyDown={handleKeyDown}
-      aria-label={`View profile for ${profile.fullname}`}
       style={{
         display: "flex",
         alignItems: "center",
@@ -66,87 +68,102 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         el.style.backgroundColor = "var(--bg-secondary)";
       }}
     >
-      {/* Profile Image */}
-      <img
-        src={profile.picture}
-        alt={`${profile.fullname} profile picture`}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={handleClick}
+        onKeyDown={handleKeyDown}
+        aria-label={`View profile for ${profile.fullname}`}
         style={{
-          width: "56px",
-          height: "56px",
-          borderRadius: "var(--rounded-full)",
-          objectFit: "cover",
-          border: "2px solid var(--border-light)",
-          flexShrink: 0,
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-md)",
+          flex: 1,
+          minWidth: 0,
         }}
-      />
+      >
+        {/* Profile Image */}
+        <img
+          src={profile.picture}
+          alt={`${profile.fullname} profile picture`}
+          style={{
+            width: "56px",
+            height: "56px",
+            borderRadius: "var(--rounded-full)",
+            objectFit: "cover",
+            border: "2px solid var(--border-light)",
+            flexShrink: 0,
+          }}
+        />
 
-      {/* Profile Info */}
-      <div style={{ flex: 1 }}>
+        {/* Profile Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-sm)",
+              marginBottom: "var(--space-xs)",
+            }}
+          >
+            <span
+              style={{
+                fontSize: "var(--fs-base)",
+                fontWeight: "var(--fw-semibold)",
+                color: "var(--text-primary)",
+              }}
+            >
+              @{profile.username}
+            </span>
+            <VerifiedBadge verified={profile.is_verified} />
+          </div>
+          <p
+            style={{
+              fontSize: "var(--fs-sm)",
+              color: "var(--text-secondary)",
+              margin: "0 0 var(--space-xs) 0",
+            }}
+          >
+            {profile.fullname}
+          </p>
+          <p
+            style={{
+              fontSize: "var(--fs-sm)",
+              color: "var(--text-tertiary)",
+              margin: 0,
+            }}
+          >
+            {formatFollowersLocal(profile.followers)} followers
+          </p>
+        </div>
+
+        {/* Stats Preview */}
         <div
           style={{
             display: "flex",
-            alignItems: "center",
-            gap: "var(--space-sm)",
-            marginBottom: "var(--space-xs)",
+            flexDirection: "column",
+            alignItems: "flex-end",
+            gap: "var(--space-xs)",
+            fontSize: "var(--fs-sm)",
           }}
         >
-          <span
-            style={{
-              fontSize: "var(--fs-base)",
-              fontWeight: "var(--fw-semibold)",
-              color: "var(--text-primary)",
-            }}
-          >
-            @{profile.username}
-          </span>
-          <VerifiedBadge verified={profile.is_verified} />
+          {profile.engagement_rate !== undefined && (
+            <div
+              style={{
+                backgroundColor: "var(--accent)",
+                color: "var(--text-inverse)",
+                padding: "var(--space-xs) var(--space-sm)",
+                borderRadius: "var(--rounded-sm)",
+                fontWeight: "var(--fw-medium)",
+              }}
+            >
+              {(profile.engagement_rate * 100).toFixed(1)}% eng.
+            </div>
+          )}
         </div>
-        <p
-          style={{
-            fontSize: "var(--fs-sm)",
-            color: "var(--text-secondary)",
-            margin: "0 0 var(--space-xs) 0",
-          }}
-        >
-          {profile.fullname}
-        </p>
-        <p
-          style={{
-            fontSize: "var(--fs-sm)",
-            color: "var(--text-tertiary)",
-            margin: 0,
-          }}
-        >
-          {formatFollowersLocal(profile.followers)} followers
-        </p>
       </div>
 
-      {/* Stats Preview */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          gap: "var(--space-xs)",
-          fontSize: "var(--fs-sm)",
-        }}
-      >
-        {profile.engagement_rate !== undefined && (
-          <div
-            style={{
-              backgroundColor: "var(--accent)",
-              color: "var(--text-inverse)",
-              padding: "var(--space-xs) var(--space-sm)",
-              borderRadius: "var(--rounded-sm)",
-              fontWeight: "var(--fw-medium)",
-            }}
-          >
-            {(profile.engagement_rate * 100).toFixed(1)}% eng.
-          </div>
-        )}
-      </div>
-
-      {/* TODO: Add to List button - hidden for now */}
+      <AddToListButton profile={selectedProfile} compact />
     </div>
   );
 }
