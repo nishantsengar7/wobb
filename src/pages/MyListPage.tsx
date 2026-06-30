@@ -1,8 +1,15 @@
 import { Link } from "react-router-dom";
-import { Layout } from "@/components/Layout";
+import { Layout } from "@/components/layout/Layout";
 import { useSelectedProfilesStore } from "@/store/selectedProfilesStore";
 import { getPlatformLabel } from "@/utils/dataHelpers";
 import { formatFollowers } from "@/utils/formatters";
+import type { Platform } from "@/types";
+
+const PLATFORM_BADGE: Record<Platform, React.CSSProperties> = {
+  instagram: { background: "linear-gradient(135deg, #F77737, #E1306C)", color: "#fff" },
+  youtube:   { background: "#FF0000", color: "#fff" },
+  tiktok:    { background: "var(--bg-elevated)", color: "var(--platform-tiktok)", border: "1px solid var(--platform-tiktok)" },
+};
 
 export function MyListPage() {
   const profiles = useSelectedProfilesStore((state) => state.items);
@@ -10,188 +17,189 @@ export function MyListPage() {
   const clearProfiles = useSelectedProfilesStore((state) => state.clearProfiles);
 
   return (
-    <Layout title="My List">
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: "var(--space-md)",
-          marginBottom: "var(--space-xl)",
-        }}
-      >
-        <p
-          style={{
-            color: "var(--text-secondary)",
-            fontSize: "var(--fs-base)",
-          }}
-        >
-          {profiles.length === 0
-            ? "Selected creators will appear here."
-            : `${profiles.length} selected creator${profiles.length === 1 ? "" : "s"}.`}
-        </p>
+    <Layout>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "var(--space-8)", flexWrap: "wrap", gap: "var(--space-4)" }}>
+        <div>
+          <h1 style={{ fontSize: "var(--fs-2xl)", letterSpacing: "-0.02em", marginBottom: "var(--space-2)" }}>
+            My{" "}
+            <span style={{ background: "var(--gradient-brand)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>List</span>
+          </h1>
+          <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-secondary)" }}>
+            {profiles.length === 0
+              ? "Your shortlisted creators will appear here."
+              : `${profiles.length} creator${profiles.length === 1 ? "" : "s"} shortlisted`}
+          </p>
+        </div>
         {profiles.length > 0 && (
           <button
             type="button"
             onClick={clearProfiles}
             aria-label="Clear all selected profiles"
             style={{
-              padding: "var(--space-sm) var(--space-md)",
+              padding: "var(--space-2) var(--space-4)",
               borderRadius: "var(--rounded-md)",
-              border: "1px solid var(--border-medium)",
-              backgroundColor: "var(--bg-secondary)",
-              color: "var(--text-secondary)",
+              border: "1px solid var(--status-error-dim)",
+              backgroundColor: "var(--status-error-dim)",
+              color: "var(--status-error)",
               cursor: "pointer",
               fontSize: "var(--fs-sm)",
               fontWeight: "var(--fw-medium)",
+              transition: "all var(--transition-fast)",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--status-error)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--status-error-dim)"; }}
           >
             Clear all
           </button>
         )}
       </div>
 
+      {/* Empty state */}
       {profiles.length === 0 ? (
-        <div
-          style={{
-            padding: "var(--space-3xl)",
-            backgroundColor: "var(--bg-secondary)",
-            border: "1px solid var(--border-light)",
-            borderRadius: "var(--rounded-md)",
-            textAlign: "center",
-          }}
-        >
-          <h2 style={{ marginBottom: "var(--space-sm)" }}>No profiles selected</h2>
-          <p
-            style={{
-              color: "var(--text-secondary)",
-              marginBottom: "var(--space-lg)",
-            }}
-          >
-            Add creators from the dashboard or profile details to build your shortlist.
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "var(--space-16) var(--space-6)",
+          textAlign: "center",
+          border: "1px dashed var(--border)",
+          borderRadius: "var(--rounded-xl)",
+          backgroundColor: "var(--bg-surface)",
+          gap: "var(--space-4)",
+        }}>
+          <div style={{
+            width: "64px", height: "64px",
+            borderRadius: "var(--rounded-full)",
+            background: "var(--bg-elevated)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "2rem",
+            marginBottom: "var(--space-2)",
+          }}>
+            📋
+          </div>
+          <h2 style={{ fontWeight: "var(--fw-semibold)", color: "var(--text-primary)" }}>No creators shortlisted yet</h2>
+          <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-secondary)", maxWidth: "340px", lineHeight: "var(--lh-relaxed)" }}>
+            Browse creators on the dashboard and click <strong style={{ color: "var(--text-primary)" }}>+ Add to List</strong> to build your shortlist.
           </p>
           <Link
             to="/"
             style={{
-              display: "inline-flex",
-              padding: "var(--space-sm) var(--space-md)",
-              backgroundColor: "var(--primary)",
-              color: "var(--text-inverse)",
+              display: "inline-flex", alignItems: "center", gap: "var(--space-2)",
+              padding: "var(--space-3) var(--space-6)",
+              background: "var(--gradient-brand)",
+              color: "#fff",
               borderRadius: "var(--rounded-md)",
               textDecoration: "none",
               fontWeight: "var(--fw-semibold)",
+              fontSize: "var(--fs-sm)",
+              marginTop: "var(--space-2)",
+              transition: "opacity var(--transition-fast)",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
           >
-            Browse creators
+            Browse creators →
           </Link>
         </div>
       ) : (
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-            gap: "var(--space-md)",
-          }}
-        >
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
+          gap: "var(--space-4)",
+        }}>
           {profiles.map((profile) => (
             <article
               key={profile.id}
               style={{
                 display: "flex",
                 flexDirection: "column",
-                gap: "var(--space-md)",
-                padding: "var(--space-md)",
-                backgroundColor: "var(--bg-secondary)",
-                border: "1px solid var(--border-light)",
-                borderRadius: "var(--rounded-md)",
-                boxShadow: "var(--shadow-sm)",
+                backgroundColor: "var(--bg-surface)",
+                border: "1px solid var(--border)",
+                borderRadius: "var(--rounded-lg)",
+                overflow: "hidden",
+                transition: "all var(--transition-base)",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "var(--primary)";
+                e.currentTarget.style.boxShadow = "var(--shadow-glow)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "var(--border)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "var(--space-md)",
-                }}
-              >
-                <img
-                  src={profile.avatar}
-                  alt={`${profile.fullName} profile picture`}
-                  style={{
-                    width: "56px",
-                    height: "56px",
-                    borderRadius: "var(--rounded-full)",
-                    objectFit: "cover",
-                    border: "2px solid var(--border-light)",
-                  }}
-                />
-                <div style={{ minWidth: 0 }}>
-                  <h2
-                    style={{
-                      fontSize: "var(--fs-base)",
-                      margin: "0 0 var(--space-xs) 0",
-                    }}
-                  >
+              {/* Card header */}
+              <div style={{
+                padding: "var(--space-5)",
+                display: "flex",
+                alignItems: "center",
+                gap: "var(--space-4)",
+                background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, transparent 100%)",
+                borderBottom: "1px solid var(--border)",
+              }}>
+                <div style={{ width: "52px", height: "52px", borderRadius: "var(--rounded-full)", padding: "2px", background: "var(--gradient-brand)", flexShrink: 0 }}>
+                  <img
+                    src={profile.avatar}
+                    alt={`${profile.fullName}`}
+                    loading="lazy"
+                    width="48"
+                    height="48"
+                    style={{ width: "48px", height: "48px", borderRadius: "var(--rounded-full)", objectFit: "cover", border: "2px solid var(--bg-surface)", display: "block" }}
+                  />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: "var(--space-1)" }}>
                     @{profile.username}
-                  </h2>
-                  <p
-                    style={{
-                      color: "var(--text-secondary)",
-                      fontSize: "var(--fs-sm)",
-                    }}
-                  >
+                  </p>
+                  <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-secondary)", marginBottom: "var(--space-2)" }}>
                     {profile.fullName}
                   </p>
+                  <span style={{
+                    ...PLATFORM_BADGE[profile.platform],
+                    fontSize: "var(--fs-xs)",
+                    fontWeight: "var(--fw-semibold)",
+                    padding: "2px var(--space-2)",
+                    borderRadius: "var(--rounded-full)",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                  }}>
+                    {getPlatformLabel(profile.platform)}
+                  </span>
                 </div>
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
-                  gap: "var(--space-sm)",
-                  fontSize: "var(--fs-sm)",
-                }}
-              >
+              {/* Stats */}
+              <div style={{
+                padding: "var(--space-4) var(--space-5)",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "var(--space-3)",
+                fontSize: "var(--fs-sm)",
+              }}>
                 <div>
-                  <p style={{ color: "var(--text-tertiary)" }}>Platform</p>
-                  <p style={{ fontWeight: "var(--fw-semibold)" }}>
-                    {getPlatformLabel(profile.platform)}
-                  </p>
+                  <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", marginBottom: "var(--space-1)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Followers</p>
+                  <p style={{ fontWeight: "var(--fw-semibold)", color: "var(--text-primary)" }}>{formatFollowers(profile.followers)}</p>
                 </div>
                 <div>
-                  <p style={{ color: "var(--text-tertiary)" }}>Followers</p>
-                  <p style={{ fontWeight: "var(--fw-semibold)" }}>
-                    {formatFollowers(profile.followers)}
-                  </p>
-                </div>
-                <div>
-                  <p style={{ color: "var(--text-tertiary)" }}>
-                    {profile.keyStatLabel}
-                  </p>
-                  <p style={{ fontWeight: "var(--fw-semibold)" }}>
-                    {profile.keyStatValue}
-                  </p>
+                  <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", marginBottom: "var(--space-1)", textTransform: "uppercase", letterSpacing: "0.05em" }}>{profile.keyStatLabel}</p>
+                  <p style={{ fontWeight: "var(--fw-semibold)", color: "var(--accent)" }}>{profile.keyStatValue}</p>
                 </div>
                 {profile.avgViews !== undefined && (
                   <div>
-                    <p style={{ color: "var(--text-tertiary)" }}>Avg views</p>
-                    <p style={{ fontWeight: "var(--fw-semibold)" }}>
-                      {formatFollowers(profile.avgViews)}
-                    </p>
+                    <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", marginBottom: "var(--space-1)", textTransform: "uppercase", letterSpacing: "0.05em" }}>Avg Views</p>
+                    <p style={{ fontWeight: "var(--fw-semibold)", color: "var(--text-primary)" }}>{formatFollowers(profile.avgViews)}</p>
                   </div>
                 )}
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "var(--space-sm)",
-                  marginTop: "auto",
-                }}
-              >
+              {/* Footer actions */}
+              <div style={{
+                padding: "var(--space-3) var(--space-5)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                borderTop: "1px solid var(--border)",
+                marginTop: "auto",
+              }}>
                 <Link
                   to={`/profile/${profile.username}?platform=${profile.platform}`}
                   style={{
@@ -199,23 +207,37 @@ export function MyListPage() {
                     textDecoration: "none",
                     fontWeight: "var(--fw-semibold)",
                     fontSize: "var(--fs-sm)",
+                    transition: "color var(--transition-fast)",
                   }}
+                  onMouseEnter={(e) => { e.currentTarget.style.color = "var(--primary-hover)"; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.color = "var(--primary)"; }}
                 >
-                  View profile
+                  View profile →
                 </Link>
                 <button
                   type="button"
                   onClick={() => removeProfile(profile.id)}
                   aria-label={`Remove ${profile.fullName} from list`}
                   style={{
-                    padding: "var(--space-xs) var(--space-sm)",
+                    padding: "var(--space-1) var(--space-3)",
                     borderRadius: "var(--rounded-md)",
-                    border: "1px solid var(--status-error)",
-                    backgroundColor: "var(--bg-secondary)",
-                    color: "var(--status-error)",
+                    border: "1px solid var(--border)",
+                    backgroundColor: "transparent",
+                    color: "var(--text-muted)",
                     cursor: "pointer",
                     fontSize: "var(--fs-sm)",
                     fontWeight: "var(--fw-medium)",
+                    transition: "all var(--transition-fast)",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = "var(--status-error)";
+                    e.currentTarget.style.backgroundColor = "var(--status-error-dim)";
+                    e.currentTarget.style.color = "var(--status-error)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = "var(--border)";
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "var(--text-muted)";
                   }}
                 >
                   Remove

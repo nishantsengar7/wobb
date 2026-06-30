@@ -8,31 +8,33 @@ interface ProfileListProps {
 export function ProfileList({ profiles }: ProfileListProps) {
   if (profiles.length === 0) {
     return (
-      <div
-        style={{
-          textAlign: "center",
-          padding: "var(--space-3xl) var(--space-md)",
-          color: "var(--text-secondary)",
-        }}
-      >
-        <p style={{ fontSize: "var(--fs-lg)", marginBottom: "var(--space-md)" }}>
-          😕 No creators found
-        </p>
-        <p style={{ fontSize: "var(--fs-base)", margin: 0 }}>
-          Try adjusting your search or filter criteria
+      <div style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "var(--space-16) var(--space-6)",
+        textAlign: "center",
+        border: "1px dashed var(--border)",
+        borderRadius: "var(--rounded-xl)",
+        backgroundColor: "var(--bg-surface)",
+        gap: "var(--space-3)",
+      }}>
+        <div style={{ fontSize: "3rem", marginBottom: "var(--space-2)" }}>🔍</div>
+        <h3 style={{ color: "var(--text-primary)", fontWeight: "var(--fw-semibold)" }}>No creators found</h3>
+        <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-secondary)", maxWidth: "320px" }}>
+          Try a different search term, or switch to another platform to explore more creators.
         </p>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "1fr",
-        gap: "var(--space-md)",
-      }}
-    >
+    <div style={{
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--space-3)",
+    }}>
       {profiles.map((profile) => (
         <ProfileCard key={profile.user_id} profile={profile} />
       ))}

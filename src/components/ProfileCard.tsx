@@ -1,20 +1,60 @@
 import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { KeyboardEvent } from "react";
-import { AddToListButton } from "@/components/AddToListButton";
+import { AddToListButton } from "@/components/ui/AddToListButton";
 import { useSearchStore } from "@/store/searchStore";
 import { createSelectedProfile } from "@/store/selectedProfilesStore";
-import type { UserProfileSummary } from "@/types";
-import { VerifiedBadge } from "./VerifiedBadge";
+import type { Platform, UserProfileSummary } from "@/types";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 interface ProfileCardProps {
   profile: UserProfileSummary;
 }
 
-function formatFollowersLocal(count: number) {
-  if (count >= 1000000) return (count / 1000000).toFixed(1) + "M";
-  if (count >= 1000) return (count / 1000).toFixed(0) + "K";
+function formatFollowers(count: number) {
+  if (count >= 1_000_000_000) return (count / 1_000_000_000).toFixed(1) + "B";
+  if (count >= 1_000_000) return (count / 1_000_000).toFixed(1) + "M";
+  if (count >= 1_000) return (count / 1_000).toFixed(0) + "K";
   return count.toString();
+}
+
+function PlatformBadge({ platform }: { platform: Platform }) {
+  const configs = {
+    instagram: {
+      label: "Instagram",
+      style: {
+        background: "linear-gradient(135deg, var(--platform-instagram-from), var(--platform-instagram-to))",
+        color: "#fff",
+      },
+    },
+    youtube: {
+      label: "YouTube",
+      style: { background: "var(--platform-youtube)", color: "#fff" },
+    },
+    tiktok: {
+      label: "TikTok",
+      style: {
+        background: "var(--bg-elevated)",
+        color: "var(--platform-tiktok)",
+        border: "1px solid var(--platform-tiktok)",
+      },
+    },
+  };
+  const cfg = configs[platform];
+  return (
+    <span style={{
+      ...cfg.style,
+      fontSize: "var(--fs-xs)",
+      fontWeight: "var(--fw-semibold)",
+      padding: "2px var(--space-2)",
+      borderRadius: "var(--rounded-full)",
+      letterSpacing: "0.02em",
+      textTransform: "uppercase",
+      flexShrink: 0,
+    }}>
+      {cfg.label}
+    </span>
+  );
 }
 
 export function ProfileCard({ profile }: ProfileCardProps) {
@@ -39,126 +79,110 @@ export function ProfileCard({ profile }: ProfileCardProps) {
   };
 
   return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: "var(--space-md)",
-        padding: "var(--space-md)",
-        marginBottom: "var(--space-md)",
-        backgroundColor: "var(--bg-secondary)",
-        border: "1px solid var(--border-light)",
-        borderRadius: "var(--rounded-md)",
-        cursor: "pointer",
-        transition: "all var(--transition-fast)",
-        boxShadow: "var(--shadow-sm)",
-      }}
-      onMouseEnter={(e) => {
-        const el = e.currentTarget;
-        el.style.borderColor = "var(--primary-light)";
-        el.style.boxShadow = "var(--shadow-md)";
-        el.style.transform = "translateY(-2px)";
-        el.style.backgroundColor = "var(--bg-primary)";
-      }}
-      onMouseLeave={(e) => {
-        const el = e.currentTarget;
-        el.style.borderColor = "var(--border-light)";
-        el.style.boxShadow = "var(--shadow-sm)";
-        el.style.transform = "translateY(0)";
-        el.style.backgroundColor = "var(--bg-secondary)";
-      }}
+    <div style={{
+      display: "flex",
+      alignItems: "center",
+      gap: "var(--space-4)",
+      padding: "var(--space-4) var(--space-5)",
+      backgroundColor: "var(--bg-surface)",
+      border: "1px solid var(--border)",
+      borderRadius: "var(--rounded-lg)",
+      transition: "all var(--transition-base)",
+      cursor: "pointer",
+      position: "relative",
+      overflow: "hidden",
+    }}
+    onMouseEnter={(e) => {
+      const el = e.currentTarget;
+      el.style.borderColor = "var(--primary)";
+      el.style.boxShadow = "var(--shadow-glow)";
+      el.style.transform = "translateY(-2px)";
+      el.style.background = `linear-gradient(135deg, rgba(124,58,237,0.06) 0%, var(--bg-surface) 100%)`;
+    }}
+    onMouseLeave={(e) => {
+      const el = e.currentTarget;
+      el.style.borderColor = "var(--border)";
+      el.style.boxShadow = "none";
+      el.style.transform = "translateY(0)";
+      el.style.background = "var(--bg-surface)";
+    }}
     >
+      {/* Clickable area */}
       <div
         role="button"
         tabIndex={0}
         onClick={handleClick}
         onKeyDown={handleKeyDown}
         aria-label={`View profile for ${profile.fullname}`}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "var(--space-md)",
-          flex: 1,
-          minWidth: 0,
-        }}
+        style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", flex: 1, minWidth: 0 }}
       >
-        {/* Profile Image */}
-        <img
-          src={profile.picture}
-          alt={`${profile.fullname} profile picture`}
-          style={{
-            width: "56px",
-            height: "56px",
+        {/* Avatar with gradient ring */}
+        <div style={{ position: "relative", flexShrink: 0 }}>
+          <div style={{
+            width: "52px",
+            height: "52px",
             borderRadius: "var(--rounded-full)",
-            objectFit: "cover",
-            border: "2px solid var(--border-light)",
+            padding: "2px",
+            background: "var(--gradient-brand)",
             flexShrink: 0,
-          }}
-        />
-
-        {/* Profile Info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-sm)",
-              marginBottom: "var(--space-xs)",
-            }}
-          >
-            <span
+          }}>
+            <img
+              src={profile.picture}
+              alt={`${profile.fullname}`}
+              loading="lazy"
+              width="48"
+              height="48"
               style={{
-                fontSize: "var(--fs-base)",
-                fontWeight: "var(--fw-semibold)",
-                color: "var(--text-primary)",
+                width: "48px",
+                height: "48px",
+                borderRadius: "var(--rounded-full)",
+                objectFit: "cover",
+                border: "2px solid var(--bg-surface)",
+                display: "block",
               }}
-            >
+            />
+          </div>
+        </div>
+
+        {/* Info */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-1)", flexWrap: "wrap" }}>
+            <span style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
               @{profile.username}
             </span>
             <VerifiedBadge verified={profile.is_verified} />
+            <PlatformBadge platform={platform} />
           </div>
-          <p
-            style={{
-              fontSize: "var(--fs-sm)",
-              color: "var(--text-secondary)",
-              margin: "0 0 var(--space-xs) 0",
-            }}
-          >
+          <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-secondary)", marginBottom: "var(--space-1)" }}>
             {profile.fullname}
           </p>
-          <p
-            style={{
-              fontSize: "var(--fs-sm)",
-              color: "var(--text-tertiary)",
-              margin: 0,
-            }}
-          >
-            {formatFollowersLocal(profile.followers)} followers
+          <p style={{ fontSize: "var(--fs-sm)", color: "var(--text-muted)" }}>
+            {formatFollowers(profile.followers)} followers
           </p>
         </div>
 
-        {/* Stats Preview */}
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "flex-end",
-            gap: "var(--space-xs)",
-            fontSize: "var(--fs-sm)",
-          }}
-        >
+        {/* Stats */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "var(--space-1)", flexShrink: 0 }}>
           {profile.engagement_rate !== undefined && (
-            <div
-              style={{
-                backgroundColor: "var(--accent)",
-                color: "var(--text-inverse)",
-                padding: "var(--space-xs) var(--space-sm)",
-                borderRadius: "var(--rounded-sm)",
-                fontWeight: "var(--fw-medium)",
-              }}
-            >
-              {(profile.engagement_rate * 100).toFixed(1)}% eng.
-            </div>
+            <span style={{
+              fontSize: "var(--fs-xs)",
+              fontWeight: "var(--fw-semibold)",
+              color: "var(--accent)",
+              backgroundColor: "var(--accent-dim)",
+              padding: "3px var(--space-2)",
+              borderRadius: "var(--rounded-full)",
+              border: "1px solid rgba(236,72,153,0.2)",
+            }}>
+              {(profile.engagement_rate * 100).toFixed(1)}% eng
+            </span>
+          )}
+          {profile.avg_views !== undefined && profile.avg_views > 0 && (
+            <span style={{
+              fontSize: "var(--fs-xs)",
+              color: "var(--text-muted)",
+            }}>
+              {formatFollowers(profile.avg_views)} avg views
+            </span>
           )}
         </div>
       </div>

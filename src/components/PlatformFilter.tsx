@@ -1,6 +1,12 @@
 import { useSearchStore } from "@/store/searchStore";
 import { PLATFORMS, getPlatformLabel } from "@/utils/dataHelpers";
 
+const PLATFORM_COLORS: Record<string, { active: string; icon: string }> = {
+  instagram: { active: "linear-gradient(135deg, #F77737, #E1306C)", icon: "📸" },
+  youtube:   { active: "#FF0000", icon: "▶" },
+  tiktok:    { active: "var(--platform-tiktok)", icon: "♪" },
+};
+
 export function PlatformFilter() {
   const selected = useSearchStore((state) => state.platform);
   const searchQuery = useSearchStore((state) => state.searchQuery);
@@ -8,114 +14,124 @@ export function PlatformFilter() {
   const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
 
   return (
-    <div style={{ marginBottom: "var(--space-2xl)" }}>
+    <div style={{ marginBottom: "var(--space-8)" }}>
+
       {/* Platform Tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: "var(--space-md)",
-          marginBottom: "var(--space-2xl)",
-          borderBottom: "2px solid var(--border-light)",
-          paddingBottom: "var(--space-md)",
-        }}
-      >
-        {PLATFORMS.map((p) => (
-          <button
-            key={p}
-            type="button"
-            onClick={() => setPlatform(p)}
-            style={{
-              padding: "var(--space-sm) var(--space-md)",
-              fontSize: "var(--fs-base)",
-              fontWeight:
-                selected === p ? "var(--fw-semibold)" : "var(--fw-normal)",
-              color: selected === p ? "var(--primary)" : "var(--text-secondary)",
-              background: "none",
-              border: "none",
-              borderBottom:
-                selected === p ? "2px solid var(--primary)" : "2px solid transparent",
-              cursor: "pointer",
-              transition: "all var(--transition-fast)",
-              position: "relative",
-              bottom: "calc(-1 * var(--space-md))",
-            }}
-            onMouseEnter={(e) => {
-              if (selected !== p) {
-                e.currentTarget.style.color = "var(--text-primary)";
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (selected !== p) {
-                e.currentTarget.style.color = "var(--text-secondary)";
-              }
-            }}
-          >
-            {getPlatformLabel(p)}
-          </button>
-        ))}
+      <div style={{
+        display: "flex",
+        gap: "var(--space-2)",
+        marginBottom: "var(--space-6)",
+        padding: "var(--space-1)",
+        backgroundColor: "var(--bg-surface)",
+        borderRadius: "var(--rounded-lg)",
+        border: "1px solid var(--border)",
+        width: "fit-content",
+      }}>
+        {PLATFORMS.map((p) => {
+          const isActive = selected === p;
+          const cfg = PLATFORM_COLORS[p];
+          return (
+            <button
+              key={p}
+              type="button"
+              onClick={() => setPlatform(p)}
+              aria-pressed={isActive}
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "var(--space-2)",
+                padding: "var(--space-2) var(--space-4)",
+                borderRadius: "var(--rounded-md)",
+                border: "none",
+                cursor: "pointer",
+                fontSize: "var(--fs-sm)",
+                fontWeight: isActive ? "var(--fw-semibold)" : "var(--fw-medium)",
+                color: isActive ? "#fff" : "var(--text-secondary)",
+                background: isActive ? cfg.active : "transparent",
+                transition: "all var(--transition-base)",
+                boxShadow: isActive ? "var(--shadow-md)" : "none",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) e.currentTarget.style.color = "var(--text-primary)";
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) e.currentTarget.style.color = "var(--text-secondary)";
+              }}
+            >
+              <span aria-hidden="true">{cfg.icon}</span>
+              {getPlatformLabel(p)}
+            </button>
+          );
+        })}
       </div>
 
       {/* Search Input */}
-      <div>
-        <label
-          htmlFor="search-input"
+      <div style={{ position: "relative", maxWidth: "560px" }}>
+        <span style={{
+          position: "absolute",
+          left: "var(--space-4)",
+          top: "50%",
+          transform: "translateY(-50%)",
+          color: "var(--text-muted)",
+          fontSize: "16px",
+          pointerEvents: "none",
+          zIndex: 1,
+        }}>
+          🔍
+        </span>
+        <input
+          id="search-input"
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search creators by name or @username..."
+          aria-label="Search influencers by username or name"
           style={{
-            display: "block",
-            marginBottom: "var(--space-sm)",
-            fontSize: "var(--fs-sm)",
-            fontWeight: "var(--fw-medium)",
-            color: "var(--text-secondary)",
+            width: "100%",
+            padding: "var(--space-3) var(--space-4) var(--space-3) 48px",
+            fontSize: "var(--fs-base)",
+            backgroundColor: "var(--bg-surface)",
+            color: "var(--text-primary)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--rounded-lg)",
+            outline: "none",
+            transition: "all var(--transition-base)",
           }}
-        >
-          Search Creators
-        </label>
-        <div
-          style={{
-            position: "relative",
-            display: "flex",
-            alignItems: "center",
+          onFocus={(e) => {
+            e.currentTarget.style.borderColor = "var(--primary)";
+            e.currentTarget.style.boxShadow = "var(--shadow-focus)";
           }}
-        >
-          <span
+          onBlur={(e) => {
+            e.currentTarget.style.borderColor = "var(--border)";
+            e.currentTarget.style.boxShadow = "none";
+          }}
+        />
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery("")}
+            aria-label="Clear search"
             style={{
               position: "absolute",
-              left: "var(--space-md)",
-              color: "var(--text-tertiary)",
-              fontSize: "1.25rem",
-              pointerEvents: "none",
+              right: "var(--space-3)",
+              top: "50%",
+              transform: "translateY(-50%)",
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              color: "var(--text-muted)",
+              fontSize: "16px",
+              padding: "var(--space-1)",
+              borderRadius: "var(--rounded-sm)",
+              display: "flex",
+              alignItems: "center",
             }}
+            onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-secondary)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-muted)"; }}
           >
-            🔍
-          </span>
-          <input
-            id="search-input"
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by username or name..."
-            aria-label="Search influencers by username or name"
-            style={{
-              width: "100%",
-              maxWidth: "500px",
-              padding: "var(--space-md) var(--space-md) var(--space-md) var(--space-2xl)",
-              fontSize: "var(--fs-base)",
-              border: "1px solid var(--border-light)",
-              borderRadius: "var(--rounded-md)",
-              backgroundColor: "var(--bg-secondary)",
-              color: "var(--text-primary)",
-              transition: "all var(--transition-fast)",
-              boxShadow: "var(--shadow-sm)",
-            }}
-            onFocus={(e) => {
-              e.currentTarget.style.borderColor = "var(--primary)";
-              e.currentTarget.style.boxShadow = `var(--shadow-md), 0 0 0 3px rgba(79, 70, 229, 0.1)`;
-            }}
-            onBlur={(e) => {
-              e.currentTarget.style.borderColor = "var(--border-light)";
-              e.currentTarget.style.boxShadow = "var(--shadow-sm)";
-            }}
-          />
-        </div>
+            ✕
+          </button>
+        )}
       </div>
     </div>
   );

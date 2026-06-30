@@ -11,4 +11,10 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  // @ts-expect-error — vitest test config not typed in vite's defineConfig
+  test: {
+    globals: true,
+    environment: "jsdom",
+    setupFiles: "./src/test/setup.ts",
+  },
 });

@@ -1,71 +1,73 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import { AddToListButton } from "@/components/AddToListButton";
-import { Layout } from "@/components/Layout";
-import { VerifiedBadge } from "@/components/VerifiedBadge";
+import { AddToListButton } from "@/components/ui/AddToListButton";
+import { Layout } from "@/components/layout/Layout";
+import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 import { useSearchStore } from "@/store/searchStore";
 import { createSelectedProfile } from "@/store/selectedProfilesStore";
 import type { FullUserProfile, Platform, ProfileDetailResponse } from "@/types";
 import { loadProfileByUsername } from "@/utils/profileLoader";
 
-function formatFollowersDetail(count: number) {
-  if (count >= 1000000) return (count / 1000000).toFixed(2) + "M";
-  if (count >= 1000) return (count / 1000).toFixed(1) + "K";
+function formatNum(count: number) {
+  if (count >= 1_000_000_000) return (count / 1_000_000_000).toFixed(2) + "B";
+  if (count >= 1_000_000) return (count / 1_000_000).toFixed(2) + "M";
+  if (count >= 1_000) return (count / 1_000).toFixed(1) + "K";
   return String(count);
 }
 
 function getPlatformParam(value: string | null): Platform | null {
-  if (value === "instagram" || value === "youtube" || value === "tiktok") {
-    return value;
-  }
-
+  if (value === "instagram" || value === "youtube" || value === "tiktok") return value;
   return null;
 }
 
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string;
-  value: string;
-  icon?: string;
-}) {
+function StatCard({ label, value, icon }: { label: string; value: string; icon?: string }) {
   return (
-    <div
-      style={{
-        backgroundColor: "var(--bg-secondary)",
-        border: "1px solid var(--border-light)",
-        borderRadius: "var(--rounded-md)",
-        padding: "var(--space-md)",
-        textAlign: "center",
-      }}
+    <div style={{
+      backgroundColor: "var(--bg-surface)",
+      border: "1px solid var(--border)",
+      borderRadius: "var(--rounded-lg)",
+      padding: "var(--space-5)",
+      display: "flex",
+      flexDirection: "column",
+      gap: "var(--space-2)",
+      transition: "border-color var(--transition-fast)",
+    }}
+    onMouseEnter={(e) => { e.currentTarget.style.borderColor = "var(--primary)"; }}
+    onMouseLeave={(e) => { e.currentTarget.style.borderColor = "var(--border)"; }}
     >
-      {icon && (
-        <div style={{ fontSize: "1.5rem", marginBottom: "var(--space-xs)" }}>
-          {icon}
-        </div>
-      )}
-      <p
-        style={{
-          fontSize: "var(--fs-sm)",
-          color: "var(--text-secondary)",
-          margin: "0 0 var(--space-xs) 0",
-        }}
-      >
+      {icon && <span style={{ fontSize: "1.4rem" }}>{icon}</span>}
+      <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: "var(--fw-semibold)" }}>
         {label}
       </p>
-      <p
-        style={{
-          fontSize: "var(--fs-lg)",
-          fontWeight: "var(--fw-semibold)",
-          color: "var(--text-primary)",
-          margin: 0,
-        }}
-      >
+      <p style={{ fontSize: "var(--fs-xl)", fontWeight: "var(--fw-bold)", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
         {value}
       </p>
     </div>
+  );
+}
+
+const PLATFORM_BADGE: Record<Platform, { label: string; style: React.CSSProperties }> = {
+  instagram: { label: "Instagram", style: { background: "linear-gradient(135deg, #F77737, #E1306C)", color: "#fff" } },
+  youtube:   { label: "YouTube", style: { background: "#FF0000", color: "#fff" } },
+  tiktok:    { label: "TikTok", style: { background: "var(--bg-elevated)", color: "var(--platform-tiktok)", border: "1px solid var(--platform-tiktok)" } },
+};
+
+function LoadingState() {
+  return (
+    <Layout>
+      <div style={{ padding: "var(--space-4) 0", marginBottom: "var(--space-8)" }}>
+        <div style={{ width: "80px", height: "var(--fs-sm)", backgroundColor: "var(--bg-elevated)", borderRadius: "var(--rounded-sm)", marginBottom: "var(--space-8)" }} />
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "auto 1fr", gap: "var(--space-8)", backgroundColor: "var(--bg-surface)", borderRadius: "var(--rounded-xl)", padding: "var(--space-8)", border: "1px solid var(--border)", marginBottom: "var(--space-8)", alignItems: "start" }}>
+        <div style={{ width: "120px", height: "120px", borderRadius: "var(--rounded-full)", backgroundColor: "var(--bg-elevated)", animation: "pulse 2s ease-in-out infinite" }} />
+        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-3)" }}>
+          <div style={{ width: "200px", height: "var(--fs-2xl)", backgroundColor: "var(--bg-elevated)", borderRadius: "var(--rounded-sm)" }} />
+          <div style={{ width: "140px", height: "var(--fs-base)", backgroundColor: "var(--bg-elevated)", borderRadius: "var(--rounded-sm)" }} />
+          <div style={{ width: "80px", height: "var(--fs-sm)", backgroundColor: "var(--bg-elevated)", borderRadius: "var(--rounded-sm)" }} />
+        </div>
+      </div>
+      <style>{`@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }`}</style>
+    </Layout>
   );
 }
 
@@ -74,14 +76,11 @@ export function ProfileDetailPage() {
   const [searchParams] = useSearchParams();
   const currentSearchPlatform = useSearchStore((state) => state.platform);
   const platform = getPlatformParam(searchParams.get("platform")) || currentSearchPlatform;
-  const [profileData, setProfileData] = useState<ProfileDetailResponse | null>(
-    null
-  );
+  const [profileData, setProfileData] = useState<ProfileDetailResponse | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     if (!username) return;
-
     loadProfileByUsername(username).then((data) => {
       setProfileData(data);
       setLoaded(true);
@@ -94,365 +93,200 @@ export function ProfileDetailPage() {
     [platform, user]
   );
 
+  const backLink = (
+    <Link
+      to="/"
+      style={{
+        display: "inline-flex", alignItems: "center", gap: "var(--space-2)",
+        color: "var(--text-secondary)", textDecoration: "none",
+        fontSize: "var(--fs-sm)", fontWeight: "var(--fw-medium)",
+        marginBottom: "var(--space-8)",
+        transition: "color var(--transition-fast)",
+      }}
+      onMouseEnter={(e) => { e.currentTarget.style.color = "var(--text-primary)"; }}
+      onMouseLeave={(e) => { e.currentTarget.style.color = "var(--text-secondary)"; }}
+    >
+      ← Back to search
+    </Link>
+  );
+
   if (!username) {
     return (
       <Layout>
-        <Link
-          to="/"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-xs)",
-            color: "var(--primary)",
-            textDecoration: "none",
-            fontSize: "var(--fs-base)",
-            marginBottom: "var(--space-lg)",
-          }}
-        >
-          ← Back to creators
-        </Link>
-        <p style={{ color: "var(--status-error)" }}>Invalid profile</p>
+        {backLink}
+        <p style={{ color: "var(--status-error)" }}>Invalid profile URL.</p>
       </Layout>
     );
   }
 
-  if (!loaded) {
+  if (!loaded) return <LoadingState />;
+
+  if (!profileData || !user || !selectedProfile) {
     return (
-      <Layout title="Loading...">
-        <div style={{ textAlign: "center", padding: "var(--space-3xl) 0" }}>
-          <p style={{ color: "var(--text-secondary)", fontSize: "var(--fs-base)" }}>
-            ⏳ Fetching profile data...
+      <Layout>
+        {backLink}
+        <div style={{ textAlign: "center", padding: "var(--space-16)" }}>
+          <p style={{ fontSize: "2rem", marginBottom: "var(--space-4)" }}>😕</p>
+          <p style={{ color: "var(--status-error)", fontWeight: "var(--fw-semibold)" }}>
+            Could not load @{username}
+          </p>
+          <p style={{ color: "var(--text-secondary)", fontSize: "var(--fs-sm)", marginTop: "var(--space-2)" }}>
+            Profile data may not be available for this creator.
           </p>
         </div>
       </Layout>
     );
   }
 
-  if (!profileData || !user || !selectedProfile) {
-    return (
-      <Layout>
-        <Link
-          to="/"
-          style={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "var(--space-xs)",
-            color: "var(--primary)",
-            textDecoration: "none",
-            fontSize: "var(--fs-base)",
-            marginBottom: "var(--space-lg)",
-          }}
-        >
-          ← Back to creators
-        </Link>
-        <p style={{ color: "var(--status-error)" }}>
-          Could not load profile details for @{username}
-        </p>
-      </Layout>
-    );
-  }
+  const badge = PLATFORM_BADGE[platform];
 
   return (
     <Layout>
-      {/* Back Navigation */}
-      <Link
-        to="/"
-        style={{
-          display: "inline-flex",
-          alignItems: "center",
-          gap: "var(--space-xs)",
-          color: "var(--primary)",
-          textDecoration: "none",
-          fontSize: "var(--fs-base)",
-          marginBottom: "var(--space-2xl)",
-          transition: "color var(--transition-fast)",
-        }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.color = "var(--primary-dark)")
-        }
-        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--primary)")}
-      >
-        ← Back to creators
-      </Link>
+      {backLink}
 
-      {/* Profile Hero Section */}
-      <div
-        style={{
-          backgroundColor: "var(--bg-secondary)",
-          border: "1px solid var(--border-light)",
-          borderRadius: "var(--rounded-lg)",
-          padding: "var(--space-2xl)",
-          marginBottom: "var(--space-2xl)",
-          display: "grid",
-          gridTemplateColumns: "auto 1fr",
-          gap: "var(--space-2xl)",
-          alignItems: "start",
-        }}
-      >
-        {/* Profile Image */}
-        <img
-          src={user.picture}
-          alt={`${user.fullname} profile picture`}
-          style={{
-            width: "120px",
-            height: "120px",
-            borderRadius: "var(--rounded-lg)",
-            objectFit: "cover",
-            border: "2px solid var(--border-light)",
-          }}
-        />
+      {/* ── Hero card ── */}
+      <div style={{
+        backgroundColor: "var(--bg-surface)",
+        border: "1px solid var(--border)",
+        borderRadius: "var(--rounded-xl)",
+        padding: "var(--space-8)",
+        marginBottom: "var(--space-8)",
+        display: "grid",
+        gridTemplateColumns: "auto 1fr",
+        gap: "var(--space-8)",
+        alignItems: "start",
+        background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, var(--bg-surface) 60%)",
+      }}>
+        {/* Avatar with gradient ring */}
+        <div style={{
+          width: "120px", height: "120px",
+          borderRadius: "var(--rounded-full)",
+          padding: "3px",
+          background: "var(--gradient-brand)",
+          flexShrink: 0,
+        }}>
+          <img
+            src={user.picture}
+            alt={`${user.fullname}`}
+            style={{ width: "100%", height: "100%", borderRadius: "var(--rounded-full)", objectFit: "cover", border: "3px solid var(--bg-surface)" }}
+          />
+        </div>
 
-        {/* Profile Info */}
+        {/* Info */}
         <div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--space-md)",
-              marginBottom: "var(--space-sm)",
-            }}
-          >
-            <h1
-              style={{
-                margin: 0,
-                fontSize: "var(--fs-2xl)",
-                fontWeight: "var(--fw-bold)",
-                color: "var(--text-primary)",
-              }}
-            >
+          <div style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: "var(--space-3)", marginBottom: "var(--space-3)" }}>
+            <h1 style={{ fontSize: "var(--fs-2xl)", letterSpacing: "-0.02em" }}>
               @{user.username}
             </h1>
             <VerifiedBadge verified={user.is_verified} />
+            <span style={{ ...badge.style, fontSize: "var(--fs-xs)", fontWeight: "var(--fw-semibold)", padding: "3px var(--space-3)", borderRadius: "var(--rounded-full)", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+              {badge.label}
+            </span>
           </div>
 
-          <p
-            style={{
-              fontSize: "var(--fs-lg)",
-              color: "var(--text-secondary)",
-              margin: "0 0 var(--space-sm) 0",
-            }}
-          >
+          <p style={{ fontSize: "var(--fs-lg)", color: "var(--text-secondary)", marginBottom: "var(--space-3)", fontWeight: "var(--fw-medium)" }}>
             {user.fullname}
           </p>
 
-          <p
-            style={{
-              fontSize: "var(--fs-sm)",
-              color: "var(--text-tertiary)",
-              margin: "0 0 var(--space-md) 0",
-              textTransform: "capitalize",
-            }}
-          >
-            📱 {platform}
-          </p>
-
           {user.description && (
-            <p
-              style={{
-                fontSize: "var(--fs-base)",
-                color: "var(--text-secondary)",
-                lineHeight: "var(--lh-relaxed)",
-                margin: "0 0 var(--space-md) 0",
-              }}
-            >
+            <p style={{ fontSize: "var(--fs-base)", color: "var(--text-secondary)", lineHeight: "var(--lh-relaxed)", marginBottom: "var(--space-6)", maxWidth: "600px" }}>
               {user.description}
             </p>
           )}
 
-          {user.url && (
-            <a
-              href={user.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "inline-block",
-                marginTop: "var(--space-md)",
-                padding: "var(--space-sm) var(--space-md)",
-                backgroundColor: "var(--primary)",
-                color: "var(--text-inverse)",
-                textDecoration: "none",
-                borderRadius: "var(--rounded-md)",
-                fontWeight: "var(--fw-medium)",
-                transition: "all var(--transition-fast)",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--primary-dark)";
-                e.currentTarget.style.boxShadow = "var(--shadow-md)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = "var(--primary)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
-            >
-              View on {platform} →
-            </a>
-          )}
-
-          <div style={{ marginTop: "var(--space-md)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-3)", flexWrap: "wrap" }}>
+            {user.url && (
+              <a
+                href={user.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  display: "inline-flex", alignItems: "center", gap: "var(--space-2)",
+                  padding: "var(--space-2) var(--space-4)",
+                  background: "var(--gradient-brand)",
+                  color: "#fff",
+                  textDecoration: "none",
+                  borderRadius: "var(--rounded-md)",
+                  fontSize: "var(--fs-sm)",
+                  fontWeight: "var(--fw-semibold)",
+                  transition: "opacity var(--transition-fast)",
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.opacity = "0.85"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.opacity = "1"; }}
+              >
+                View on {badge.label} →
+              </a>
+            )}
             <AddToListButton profile={selectedProfile} />
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div style={{ marginBottom: "var(--space-2xl)" }}>
-        <h2
-          style={{
-            fontSize: "var(--fs-xl)",
-            fontWeight: "var(--fw-semibold)",
-            marginBottom: "var(--space-md)",
-            color: "var(--text-primary)",
-          }}
-        >
+      {/* ── Stats grid ── */}
+      <section style={{ marginBottom: "var(--space-8)" }}>
+        <h2 style={{ fontWeight: "var(--fw-semibold)", marginBottom: "var(--space-5)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", fontSize: "var(--fs-xs)" }}>
           Performance Metrics
         </h2>
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
-            gap: "var(--space-md)",
-          }}
-        >
-          <StatCard
-            label="Followers"
-            value={formatFollowersDetail(user.followers)}
-            icon="👥"
-          />
+        <div style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+          gap: "var(--space-4)",
+        }}>
+          <StatCard label="Followers" value={formatNum(user.followers)} icon="👥" />
           {user.engagement_rate !== undefined && (
-            <StatCard
-              label="Engagement Rate"
-              value={`${(user.engagement_rate * 100).toFixed(2)}%`}
-              icon="📈"
-            />
+            <StatCard label="Engagement Rate" value={`${(user.engagement_rate * 100).toFixed(2)}%`} icon="📈" />
           )}
           {user.posts_count !== undefined && (
-            <StatCard
-              label="Total Posts"
-              value={user.posts_count.toLocaleString()}
-              icon="📸"
-            />
+            <StatCard label="Total Posts" value={user.posts_count.toLocaleString()} icon="📸" />
           )}
           {user.avg_likes !== undefined && (
-            <StatCard
-              label="Avg Likes"
-              value={formatFollowersDetail(user.avg_likes)}
-              icon="❤️"
-            />
+            <StatCard label="Avg Likes" value={formatNum(user.avg_likes)} icon="❤️" />
           )}
           {user.avg_comments !== undefined && (
             <StatCard label="Avg Comments" value={user.avg_comments.toString()} icon="💬" />
           )}
           {user.avg_views !== undefined && user.avg_views > 0 && (
-            <StatCard
-              label="Avg Views"
-              value={formatFollowersDetail(user.avg_views)}
-              icon="👁️"
-            />
+            <StatCard label="Avg Views" value={formatNum(user.avg_views)} icon="👁️" />
           )}
         </div>
-      </div>
+      </section>
 
-      {/* Additional Info Section */}
-      {(user.gender || user.age_group || user.is_business) && (
-        <div
-          style={{
-            backgroundColor: "var(--bg-secondary)",
-            border: "1px solid var(--border-light)",
-            borderRadius: "var(--rounded-md)",
-            padding: "var(--space-lg)",
-            marginBottom: "var(--space-2xl)",
-          }}
-        >
-          <h3
-            style={{
-              fontSize: "var(--fs-base)",
-              fontWeight: "var(--fw-semibold)",
-              marginBottom: "var(--space-md)",
-              color: "var(--text-primary)",
-            }}
-          >
-            Profile Information
-          </h3>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
-              gap: "var(--space-md)",
-            }}
-          >
+      {/* ── Profile info ── */}
+      {(user.gender || user.age_group || user.is_business !== undefined) && (
+        <section>
+          <h2 style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.06em", fontWeight: "var(--fw-semibold)", marginBottom: "var(--space-5)" }}>
+            Profile Details
+          </h2>
+          <div style={{
+            backgroundColor: "var(--bg-surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--rounded-lg)",
+            padding: "var(--space-6)",
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
+            gap: "var(--space-6)",
+          }}>
             {user.gender && (
               <div>
-                <p
-                  style={{
-                    fontSize: "var(--fs-sm)",
-                    color: "var(--text-secondary)",
-                    margin: "0 0 var(--space-xs) 0",
-                  }}
-                >
-                  Gender
-                </p>
-                <p
-                  style={{
-                    fontSize: "var(--fs-base)",
-                    fontWeight: "var(--fw-medium)",
-                    color: "var(--text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  {user.gender}
-                </p>
+                <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-1)" }}>Gender</p>
+                <p style={{ fontSize: "var(--fs-base)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)" }}>{user.gender}</p>
               </div>
             )}
             {user.age_group && (
               <div>
-                <p
-                  style={{
-                    fontSize: "var(--fs-sm)",
-                    color: "var(--text-secondary)",
-                    margin: "0 0 var(--space-xs) 0",
-                  }}
-                >
-                  Age Group
-                </p>
-                <p
-                  style={{
-                    fontSize: "var(--fs-base)",
-                    fontWeight: "var(--fw-medium)",
-                    color: "var(--text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  {user.age_group}
-                </p>
+                <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-1)" }}>Age Group</p>
+                <p style={{ fontSize: "var(--fs-base)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)" }}>{user.age_group}</p>
               </div>
             )}
             {user.is_business !== undefined && (
               <div>
-                <p
-                  style={{
-                    fontSize: "var(--fs-sm)",
-                    color: "var(--text-secondary)",
-                    margin: "0 0 var(--space-xs) 0",
-                  }}
-                >
-                  Account Type
-                </p>
-                <p
-                  style={{
-                    fontSize: "var(--fs-base)",
-                    fontWeight: "var(--fw-medium)",
-                    color: "var(--text-primary)",
-                    margin: 0,
-                  }}
-                >
-                  {user.is_business ? "Business" : "Personal"}
-                </p>
+                <p style={{ fontSize: "var(--fs-xs)", color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "var(--space-1)" }}>Account Type</p>
+                <p style={{ fontSize: "var(--fs-base)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)" }}>{user.is_business ? "Business" : "Personal"}</p>
               </div>
             )}
           </div>
-        </div>
+        </section>
       )}
-
     </Layout>
   );
 }
