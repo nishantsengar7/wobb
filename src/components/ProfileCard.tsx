@@ -1,13 +1,11 @@
 import { useNavigate } from "react-router-dom";
 import type { KeyboardEvent } from "react";
-import type { Platform, UserProfileSummary } from "@/types";
+import { useSearchStore } from "@/store/searchStore";
+import type { UserProfileSummary } from "@/types";
 import { VerifiedBadge } from "./VerifiedBadge";
 
 interface ProfileCardProps {
   profile: UserProfileSummary;
-  platform: Platform;
-  searchQuery: string;
-  onProfileClick?: (username: string) => void;
 }
 
 function formatFollowersLocal(count: number) {
@@ -16,16 +14,13 @@ function formatFollowersLocal(count: number) {
   return count.toString();
 }
 
-export function ProfileCard({
-  profile,
-  platform,
-  searchQuery,
-  onProfileClick,
-}: ProfileCardProps) {
+export function ProfileCard({ profile }: ProfileCardProps) {
   const navigate = useNavigate();
+  const platform = useSearchStore((state) => state.platform);
+  const recordProfileClick = useSearchStore((state) => state.recordProfileClick);
 
   const handleClick = () => {
-    if (onProfileClick) onProfileClick(profile.username);
+    recordProfileClick(profile.username);
     navigate(`/profile/${profile.username}?platform=${platform}`);
   };
 
@@ -42,7 +37,6 @@ export function ProfileCard({
       tabIndex={0}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
-      data-search={searchQuery}
       aria-label={`View profile for ${profile.fullname}`}
       style={{
         display: "flex",

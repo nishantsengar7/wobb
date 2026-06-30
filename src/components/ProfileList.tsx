@@ -1,19 +1,11 @@
-import type { Platform, UserProfileSummary } from "@/types";
+import type { UserProfileSummary } from "@/types";
 import { ProfileCard } from "./ProfileCard";
 
 interface ProfileListProps {
   profiles: UserProfileSummary[];
-  platform: Platform;
-  searchQuery: string;
-  onProfileClick: (username: string) => void;
 }
 
-export function ProfileList({
-  profiles,
-  platform,
-  searchQuery,
-  onProfileClick,
-}: ProfileListProps) {
+export function ProfileList({ profiles }: ProfileListProps) {
   if (profiles.length === 0) {
     return (
       <div
@@ -42,15 +34,8 @@ export function ProfileList({
       }}
     >
       {profiles.map((profile) => (
-        <ProfileCard
-          key={profile.user_id}
-          profile={profile}
-          platform={platform}
-          searchQuery={searchQuery}
-          onProfileClick={onProfileClick}
-        />
+        <ProfileCard key={profile.user_id} profile={profile} />
       ))}
     </div>
   );
 }
-

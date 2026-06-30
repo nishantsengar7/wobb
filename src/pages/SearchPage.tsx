@@ -1,25 +1,15 @@
-import { useState } from "react";
-import type { Platform } from "@/types";
 import { Layout } from "@/components/Layout";
 import { PlatformFilter } from "@/components/PlatformFilter";
 import { ProfileList } from "@/components/ProfileList";
+import { useSearchStore } from "@/store/searchStore";
 import { extractProfiles, filterProfiles } from "@/utils/dataHelpers";
 
 export function SearchPage() {
-  const [platform, setPlatform] = useState<Platform>("instagram");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [, setClickCount] = useState(0);
+  const platform = useSearchStore((state) => state.platform);
+  const searchQuery = useSearchStore((state) => state.searchQuery);
 
   const allProfiles = extractProfiles(platform);
   const filtered = filterProfiles(allProfiles, searchQuery);
-
-  const handleProfileClick = (username: string) => {
-    setClickCount((prevCount) => {
-      const nextCount = prevCount + 1;
-      console.log("Clicked profile:", username, "total clicks:", nextCount);
-      return nextCount;
-    });
-  };
 
   return (
     <Layout title="Discover Top Creators">
@@ -35,15 +25,7 @@ export function SearchPage() {
         </p>
       </div>
 
-      <PlatformFilter
-        selected={platform}
-        onChange={(p) => {
-          setPlatform(p);
-          setSearchQuery("");
-        }}
-        searchQuery={searchQuery}
-        onSearchChange={setSearchQuery}
-      />
+      <PlatformFilter />
 
       {/* Results Stats */}
       <div
@@ -76,13 +58,7 @@ export function SearchPage() {
         </div>
       </div>
 
-      <ProfileList
-        profiles={filtered}
-        platform={platform}
-        searchQuery={searchQuery}
-        onProfileClick={handleProfileClick}
-      />
+      <ProfileList profiles={filtered} />
     </Layout>
   );
 }
-

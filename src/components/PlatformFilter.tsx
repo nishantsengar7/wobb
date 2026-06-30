@@ -1,19 +1,12 @@
-import type { Platform } from "@/types";
+import { useSearchStore } from "@/store/searchStore";
 import { PLATFORMS, getPlatformLabel } from "@/utils/dataHelpers";
 
-interface PlatformFilterProps {
-  selected: Platform;
-  onChange: (platform: Platform) => void;
-  searchQuery: string;
-  onSearchChange: (value: string) => void;
-}
+export function PlatformFilter() {
+  const selected = useSearchStore((state) => state.platform);
+  const searchQuery = useSearchStore((state) => state.searchQuery);
+  const setPlatform = useSearchStore((state) => state.setPlatform);
+  const setSearchQuery = useSearchStore((state) => state.setSearchQuery);
 
-export function PlatformFilter({
-  selected,
-  onChange,
-  searchQuery,
-  onSearchChange,
-}: PlatformFilterProps) {
   return (
     <div style={{ marginBottom: "var(--space-2xl)" }}>
       {/* Platform Tabs */}
@@ -30,7 +23,7 @@ export function PlatformFilter({
           <button
             key={p}
             type="button"
-            onClick={() => onChange(p)}
+            onClick={() => setPlatform(p)}
             style={{
               padding: "var(--space-sm) var(--space-md)",
               fontSize: "var(--fs-base)",
@@ -98,7 +91,7 @@ export function PlatformFilter({
             id="search-input"
             type="text"
             value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by username or name..."
             aria-label="Search influencers by username or name"
             style={{
