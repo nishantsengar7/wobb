@@ -2,10 +2,11 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import type { KeyboardEvent } from "react";
 import { AddToListButton } from "@/components/ui/AddToListButton";
+import { Avatar } from "@/components/ui/Avatar";
 import { useSearchStore } from "@/store/searchStore";
 import { createSelectedProfile } from "@/store/selectedProfilesStore";
 import type { Platform, UserProfileSummary } from "@/types";
-import { resolveUsername } from "@/utils/formatters";
+import { resolveDisplayName, resolveUsername } from "@/utils/formatters";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 interface ProfileCardProps {
@@ -68,6 +69,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
   );
 
   const effectiveUsername = resolveUsername(profile);
+  const displayHandle = resolveDisplayName(profile);
 
   const handleClick = () => {
     recordProfileClick(effectiveUsername);
@@ -119,39 +121,19 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         aria-label={`View profile for ${profile.fullname}`}
         style={{ display: "flex", alignItems: "center", gap: "var(--space-4)", flex: 1, minWidth: 0 }}
       >
-        {/* Avatar with gradient ring */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <div style={{
-            width: "52px",
-            height: "52px",
-            borderRadius: "var(--rounded-full)",
-            padding: "2px",
-            background: "var(--gradient-brand)",
-            flexShrink: 0,
-          }}>
-            <img
-              src={profile.picture}
-              alt={`${profile.fullname}`}
-              loading="lazy"
-              width="48"
-              height="48"
-              style={{
-                width: "48px",
-                height: "48px",
-                borderRadius: "var(--rounded-full)",
-                objectFit: "cover",
-                border: "2px solid var(--bg-surface)",
-                display: "block",
-              }}
-            />
-          </div>
-        </div>
+        {/* Avatar with gradient ring + fallback */}
+        <Avatar
+          src={profile.picture}
+          alt={displayHandle}
+          size={52}
+          withRing
+        />
 
         {/* Info */}
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-1)", flexWrap: "wrap" }}>
             <span style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
-              @{effectiveUsername}
+              @{displayHandle}
             </span>
             <VerifiedBadge verified={profile.is_verified} />
             <PlatformBadge platform={platform} />

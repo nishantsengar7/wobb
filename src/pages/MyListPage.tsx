@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { Avatar } from "@/components/ui/Avatar";
 import { Layout } from "@/components/layout/Layout";
 import { useSelectedProfilesStore } from "@/store/selectedProfilesStore";
 import { getPlatformLabel } from "@/utils/dataHelpers";
@@ -136,16 +137,12 @@ export function MyListPage() {
                 background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, transparent 100%)",
                 borderBottom: "1px solid var(--border)",
               }}>
-                <div style={{ width: "52px", height: "52px", borderRadius: "var(--rounded-full)", padding: "2px", background: "var(--gradient-brand)", flexShrink: 0 }}>
-                  <img
-                    src={profile.avatar}
-                    alt={`${profile.fullName}`}
-                    loading="lazy"
-                    width="48"
-                    height="48"
-                    style={{ width: "48px", height: "48px", borderRadius: "var(--rounded-full)", objectFit: "cover", border: "2px solid var(--bg-surface)", display: "block" }}
-                  />
-                </div>
+                <Avatar
+                  src={profile.avatar}
+                  alt={profile.username}
+                  size={52}
+                  withRing
+                />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <p style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)", letterSpacing: "-0.01em", marginBottom: "var(--space-1)" }}>
                     @{profile.username}

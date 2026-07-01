@@ -16,12 +16,23 @@ export function formatEngagementRate(rate: number | undefined): string {
 }
 
 /**
- * Resolves the best available identifier for a profile.
- * Some YouTube accounts are missing the `username` field; falls back to
- * handle → custom_name → user_id so cards always render correctly.
+ * Resolves a stable unique identifier for routing/dedup purposes.
+ * Prefers handle → custom_name → username → user_id.
+ * Used for URLs and store keys.
  */
 export function resolveUsername(
   profile: Pick<UserProfileSummary, "username" | "handle" | "custom_name" | "user_id">
 ): string {
-  return profile.username ?? profile.handle ?? profile.custom_name ?? profile.user_id;
+  return profile.handle ?? profile.custom_name ?? profile.username ?? profile.user_id;
 }
+
+/**
+ * Resolves the best human-readable display name for the @handle shown in the UI.
+ * Prefers custom_name (e.g. "CoComelon") over the raw username (e.g. "checkgate").
+ */
+export function resolveDisplayName(
+  profile: Pick<UserProfileSummary, "username" | "handle" | "custom_name" | "user_id">
+): string {
+  return profile.custom_name ?? profile.handle ?? profile.username ?? profile.user_id;
+}
+
