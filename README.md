@@ -8,7 +8,7 @@ This app allows marketing teams to discover creators across YouTube, Instagram, 
 
 ## 🚀 Live Demo & Getting Started
 
-* **Live Deployment**: [wobb-three.vercel.app](https://wobb-three.vercel.app/) *(or your actual Vercel deployment URL)*
+* **Live Deployment**: [https://wobb-eight.vercel.app/]
 * **Local Preview**:
   ```bash
   # Clone the repository
