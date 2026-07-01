@@ -1,107 +1,87 @@
-# Wobb Frontend Assignment — Influencer Search App
+# Influencer Search & Shortlist Builder (Wobb Frontend Assignment)
 
-A premium, portfolio-grade influencer search and list builder application built with **React 19**, **TypeScript**, **Vite**, and **Tailwind CSS**. 
+A premium, highly-optimized influencer search and shortlist management application built using **React 19**, **TypeScript**, **Vite**, and **Tailwind CSS**. 
 
-This application provides a dark-mode SaaS interface allowing marketers to discover, search, view analytics for, and shortlist creators across Instagram, YouTube, and TikTok.
-
----
-
-## Status
-
-🏆 **All Tasks 1–7 completed successfully.** The codebase is clean, well-tested, optimized for production performance, highly accessible, and visually redesigned.
-
-- **Task 1: Code Quality & Bug Fixes** — ✅ COMPLETE
-- **Task 2: UI Redesign (Premium Dark SaaS)** — ✅ COMPLETE
-- **Task 3: Zustand State Migration** — ✅ COMPLETE
-- **Task 4: Add to List Feature** — ✅ COMPLETE
-- **Task 5: Codebase Refactoring** — ✅ COMPLETE
-- **Task 6: Performance Optimization** — ✅ COMPLETE
-- **Task 7: Test Suite Setup** — ✅ COMPLETE
+This app allows marketing teams to discover creators across YouTube, Instagram, and TikTok, inspect detailed engagement analytics, and curate shortlists that persist across sessions.
 
 ---
 
-## Quick Start
+## 🚀 Live Demo & Getting Started
 
-```bash
-# 1. Install dependencies
-npm install --legacy-peer-deps
+* **Live Deployment**: [wobb-three.vercel.app](https://wobb-three.vercel.app/) *(or your actual Vercel deployment URL)*
+* **Local Preview**:
+  ```bash
+  # Clone the repository
+  git clone https://github.com/nishantsengar7/wobb.git
+  cd wobb
 
-# 2. Run the development server
-npm run dev
+  # Install dependencies (React 19 compatible)
+  npm install
 
-# 3. Open in your browser
-# http://localhost:5173
-```
-
----
-
-## Core Features
-
-- **Segmented Search Engine** — Search creators in real-time by username, full name, or handle across Instagram, YouTube, and TikTok.
-- **Shortlist Builder ("My List")** — Add or remove creators from a persistent list (via Zustand store backed by local storage). Shortlist metrics are computed on the fly.
-- **Interactive Analytics View** — Explore detailed stats cards showing followers, engagement rates, average views, total engagements, and demographic insights.
-- **Robust CDN Fallback System** — Prevents broken profile pictures when YouTube CDN requests are blocked from localhost.
-- **Refined Micro-Interactions** — Hover-state scale transformations, glowing borders, active state highlights, and toggle animation feedback.
+  # Run development server
+  npm run dev
+  ```
 
 ---
 
-## Bug Fixes & Refinements
+## 🛠️ Summary of Completed Tasks
 
-During development and audits, several critical issues were resolved to elevate the app's stability, user experience, and visual fidelity:
+### 1. Bug Fixes & Code Quality Audit
+* **Stale Closure Click Counters**: Fixed state closure capture traps on search interactions by adopting proper functional state updates (`setClickCount(prev => prev + 1)`).
+* **Case-Insensitive Search**: Normalised search parameters, resolving a bug where title-cased profiles (e.g., "Cristiano") failed to match lowercase inputs.
+* **YouTube Profile Loader Failures**: Added fallback mechanisms to search index files for creators lacking detailed profile JSON configurations (e.g. Vlad and Niki, Cocomelon).
+* **YouTube Image Referrer Blocks**: Embedded `referrerPolicy="no-referrer"` on images to bypass YouTube's localhost origin restrictions. Added a fallback gradient initials avatar system if images are broken.
 
-### 1. YouTube Creator Profile Loader Failures
-- **Issue:** Several YouTube creators (e.g. Vlad and Niki, CoComelon, PewDiePie) did not have a dedicated detail `.json` file in the profiles directory. Clicking on their cards resulted in a blank/error page because `ProfileDetailPage` could not read the profile.
-- **Fix:** Implemented a robust fallback system in the detail page. If the dynamic profile file fetch fails, it searches the cached search summary lists using a helper utility. The page then dynamically renders using this summary data so every creator profile resolves beautifully.
+### 2. UI/UX Overhaul
+* **Premium Dark Mode Layout**: Implemented a modern dark SaaS interface (`#0D1117` base / `#161B22` elevated surfaces) with violet-pink brand gradients.
+* **Platform Customisation**: Visual identifiers change contextually based on the active platform (TikTok teal, YouTube red, Instagram gradient).
+* **Skeleton Loading Screens**: Designed CSS-based skeletal load states to eliminate layout shift while profile assets compile.
 
-### 2. Missing YouTube Username Field
-- **Issue:** Several entries in the YouTube search JSON lacked a `username` field, having only `handle` and `custom_name` keys. This caused cards to show `@undefined` and broken navigation links to `/profile/undefined`.
-- **Fix:** Created a `resolveUsername` formatter that falls back in priority: `handle` ➔ `custom_name` ➔ `username` ➔ `user_id`. Also added `resolveDisplayName` to show friendly handles (e.g. `@CoComelon` instead of `@checkgate`).
+### 3. Zustand State Migration
+* **Store Splitting**: Replaced native React Context with two focused Zustand stores (`useSearchStore` and `useSelectedProfilesStore`).
+* **Persistence Layer**: Integrated Zustand's `persist` middleware to back shortlist state into `localStorage` automatically.
 
-### 3. YouTube CDN Image Blocking (Hotlink Restriction)
-- **Issue:** YouTube CDN domains (`yt3.googleusercontent.com`) block requests from `localhost` due to the `Referer` header checking, showing broken image icons.
-- **Fix:** Implemented a custom `Avatar` component that applies `referrerPolicy="no-referrer"` to the image tags to skip origin reporting. It also includes an `onError` handler that automatically serves a personalized initials gradient placeholder if the image fails.
+### 4. "Add to List" Feature
+* **Deduplication Check**: Prevents duplicate insertions by checking the unique composite ID (`${platform}:${username}`).
+* **Micro-interactions**: Compact checkmark badges on list items toggle state and scale up on click. The selection detail syncs globally across the Search dashboard, Profile detail pages, and the dedicated shortlists screen.
 
-### 4. Stale Closures & Legacy State Bugs
-- **Issue:** Click logging was one step behind due to state-capturing closures.
-- **Fix:** Migrated search states and counter click states into a granular Zustand store, removing local hook synchronization logic.
+### 5. Architectural Refactoring
+* **Feature-Based Organization**: Restructured codebase into explicit layers: `components/ui/`, `components/layout/`, `hooks/`, `store/`, `types/`, and `utils/`.
+* **Custom Hooks**: Extracted filtration logic into `useFilteredProfiles` to keep the presentation views clean.
 
----
+### 6. Performance Optimization
+* **Route Code-Splitting**: Wrapped routes with `React.lazy` and React `Suspense` for lighter bundle chunks.
+* **Memoization Strategy**: Implemented `useMemo` for derived lists and complex state selectors to avoid unnecessary re-renders.
 
-## Design System & UX Redesign
-
-The application was overhauled from a generic Tailwind layout to a premium dark mode SaaS dashboard with Linear-like aesthetics:
-
-- **Color Palette:** Pure dark background (`#0D1117`), deep gray surfaces (`#161B22`), purple-to-pink gradient accents (`#7C3AED` to `#EC4899`), and clear status greens (`#3FB950`).
-- **Typography:** Google Fonts' **Inter** loaded as the primary sans-serif face for clean readability.
-- **Platform Badges:** Custom brand identities mapped dynamically (YouTube: red, TikTok: teal outline, Instagram: orange-to-purple gradient).
-- **Responsive Layout:** CSS-in-JS properties bound dynamically to grid templates for fluid layouts on mobile, tablet, and desktop screens.
-- **Skeleton Loaders:** CSS keyframe pulse animations represent loading states, preventing layout shift while assets are resolved.
-
----
-
-## Technical Architecture & State
-
-### State Management (Zustand)
-- **Search Store:** Tracks selected platform, search inputs, and page-specific interactions.
-- **Selected Profiles Store:** Manages list-builder selections (add, remove, clear all) with auto-persistence enabled using Zustand's `persist` middleware (backing data to `localStorage`).
-
-### Performance Optimizations
-- **Route-Based Code Splitting:** `react-router-dom` routes are split using `React.lazy` and `Suspense` wrapper modules.
-- **Selective Memoization:** Handlers and selectors are memoized to prevent cascading re-renders during high-frequency keystroke typing.
-- **Granular Selectors:** Zustand hooks select slice-level values only, avoiding unnecessary global component updates.
-
-### Test Suite (Vitest + JSDOM)
-Includes a fully configured testing environment to guarantee logic stability:
-- `vitest` runs unit tests in a simulated browser environment.
-- Tests verify store state persistence, filtering logic, and formatters.
+### 7. Automated Testing
+* **Unit Test Suite**: Configured `vitest` + `jsdom` + `@testing-library/react` to test store persistence, deduplication logic, and string formatting helpers.
 
 ---
 
-## Scripts
+## 📦 Libraries Added & Trade-Offs
 
-| Command | Action |
-|---|---|
-| `npm run dev` | Starts the Vite dev server at `http://localhost:5173` |
-| `npm run build` | Compiles TypeScript and runs the production rollup compiler |
-| `npm run lint` | Code analysis check using ESLint |
-| `npm run test` | Starts the Vitest unit test runner |
+| Library | Purpose | Trade-off / Rationale |
+|---|---|---|
+| **Zustand** | Global state management & local storage syncing | Minimal boilerplate compared to Redux, cleaner selector patterns than React Context. |
+| **Vitest** | Fast unit testing engine | Replaces heavier Jest setups with zero-config Vite integration. |
+| **jsdom** | Virtual browser environment for tests | Lightweight in-memory DOM simulation; saves time over heavy headless browsers. |
+| **@testing-library/react** | Component mounting & rendering tests | Tests consumer behavior rather than internal state changes. |
+
+---
+
+## 💡 Engineering Assumptions & Trade-Offs
+
+### Assumptions
+* **Identifier Mapping**: YouTube usernames are sometimes missing from the original payload. The app resolves handles and custom names in priority (`handle` ➔ `custom_name` ➔ `username` ➔ `user_id`) to ensure unique, queryable profile routes.
+* **Mock Environment**: Local JSON fixtures are treated as static endpoints. Dynamic detail loader lookups fallback to search lists when detailed fixtures are unavailable.
+
+### Trade-offs
+* **Local Storage Cache**: Shortlists are persisted inside the browser's `localStorage` for simplicity. A production implementation would write these collections to a relational database through a secure backend API.
+* **List Virtualization**: Skipped list virtualization (`react-window`) since the current layout payload is tiny (~10 profiles per platform). If scaling to 10,000+ items, virtualization would be implemented to preserve DOM node budgets.
+
+---
+
+## 🚀 Future Improvements (With More Time)
+* **Real-time API Integration**: Swap static JSON imports for a real-time Express/GraphQL server query system.
+* **E2E Testing Suite**: Implement Playwright for comprehensive user flow and shortlist behavior tests across simulated device viewports.
+* **Framer Motion Integration**: Add fluid transitions for card entries, tab switches, and page changes.
