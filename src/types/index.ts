@@ -2,7 +2,9 @@ export type Platform = "instagram" | "youtube" | "tiktok";
 
 export interface UserProfileSummary {
   user_id: string;
-  username: string;
+  username?: string;       // May be absent on some YouTube accounts
+  custom_name?: string;    // YouTube-specific alternative identifier
+  handle?: string;         // YouTube handle (e.g. @MrBeast)
   url: string;
   picture: string;
   fullname: string;
@@ -10,7 +12,6 @@ export interface UserProfileSummary {
   followers: number;
   engagements?: number;
   engagement_rate?: number;
-  handle?: string;
   avg_views?: number;
 }
 

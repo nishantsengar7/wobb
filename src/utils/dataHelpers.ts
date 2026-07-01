@@ -2,6 +2,7 @@ import instagramData from "@/assets/data/search/instagram.json";
 import youtubeData from "@/assets/data/search/youtube.json";
 import tiktokData from "@/assets/data/search/tiktok.json";
 import type { Platform, SearchData, UserProfileSummary } from "@/types";
+import { resolveUsername } from "@/utils/formatters";
 
 const platformData: Record<Platform, SearchData> = {
   instagram: instagramData as SearchData,
@@ -25,7 +26,7 @@ export function filterProfiles(
   if (!query) return profiles;
   const normalizedQuery = query.toLowerCase();
   return profiles.filter((p) => {
-    const matchUsername = p.username.toLowerCase().includes(normalizedQuery);
+    const matchUsername = resolveUsername(p).toLowerCase().includes(normalizedQuery);
     const matchFullname = p.fullname.toLowerCase().includes(normalizedQuery);
     return matchUsername || matchFullname;
   });

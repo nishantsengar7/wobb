@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Platform, UserProfileSummary } from "@/types";
-import { formatEngagementRate, formatFollowers } from "@/utils/formatters";
+import { formatEngagementRate, formatFollowers, resolveUsername } from "@/utils/formatters";
 
 export interface SelectedProfile {
   id: string;
@@ -34,10 +34,10 @@ interface SelectedProfilesActions {
 type SelectedProfilesStore = SelectedProfilesState & SelectedProfilesActions;
 
 export function getSelectedProfileId(
-  profile: Pick<UserProfileSummary, "user_id" | "username">,
+  profile: Pick<UserProfileSummary, "user_id" | "username" | "handle" | "custom_name">,
   platform: Platform
 ) {
-  return `${platform}:${profile.user_id || profile.username}`;
+  return `${platform}:${resolveUsername(profile)}`;
 }
 
 export function createSelectedProfile(
@@ -49,7 +49,7 @@ export function createSelectedProfile(
   return {
     id: getSelectedProfileId(profile, platform),
     userId: profile.user_id,
-    username: profile.username,
+    username: resolveUsername(profile),
     fullName: profile.fullname,
     platform,
     avatar: profile.picture,

@@ -5,6 +5,7 @@ import { AddToListButton } from "@/components/ui/AddToListButton";
 import { useSearchStore } from "@/store/searchStore";
 import { createSelectedProfile } from "@/store/selectedProfilesStore";
 import type { Platform, UserProfileSummary } from "@/types";
+import { resolveUsername } from "@/utils/formatters";
 import { VerifiedBadge } from "@/components/ui/VerifiedBadge";
 
 interface ProfileCardProps {
@@ -66,9 +67,11 @@ export function ProfileCard({ profile }: ProfileCardProps) {
     [platform, profile]
   );
 
+  const effectiveUsername = resolveUsername(profile);
+
   const handleClick = () => {
-    recordProfileClick(profile.username);
-    navigate(`/profile/${profile.username}?platform=${platform}`);
+    recordProfileClick(effectiveUsername);
+    navigate(`/profile/${effectiveUsername}?platform=${platform}`);
   };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -148,7 +151,7 @@ export function ProfileCard({ profile }: ProfileCardProps) {
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: "var(--space-2)", marginBottom: "var(--space-1)", flexWrap: "wrap" }}>
             <span style={{ fontSize: "var(--fs-md)", fontWeight: "var(--fw-semibold)", color: "var(--text-primary)", letterSpacing: "-0.01em" }}>
-              @{profile.username}
+              @{effectiveUsername}
             </span>
             <VerifiedBadge verified={profile.is_verified} />
             <PlatformBadge platform={platform} />
